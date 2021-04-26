@@ -30,13 +30,13 @@ READELF         = $(TARGET)-readelf
 
 GDBGUI          = gdbgui
 
-CREATE_MIF      = ../../misc/create_mif.rb
+CREATE_MIF      = ../misc/create_mif.rb
 
 .PHONY: all clean 
 
 all: progmem.dis progmem.bin progmem0.hex progmem0.mif
 
-progmem.dis: progmem_dis.elf
+progmem.dis: progmem.elf
 	$(OBJDUMP) -s -D $< > $@
 
 progmem0.hex: progmem.bin
@@ -57,28 +57,8 @@ progmem.bin: progmem.elf
 progmem.elf: $(OBJ_FILES) top_defines.h sections.lds Makefile 
 	$(LD) $(LDFLAGS) -o $@ $(OBJ_FILES) -lm 
 
-progmem_dis.elf: $(OBJ_FILES) top_defines.h sections.lds Makefile
-	$(LD) $(LDFLAGS) -o $@ $(OBJ_FILES) -lm 
-
 main.o: top_defines.h
-
 main.c: top_defines.h
-
-ocd:
-	/opt/openocd-vex/bin/openocd -f /opt/openocd-vex/share/openocd/scripts/interface/ftdi/digilent_jtag_smt2.cfg \
-		-c "adapter speed 1000; transport select jtag" \
-		-f "vexriscv_init.cfg"
-
-ocd_deca:
-	/opt/openocd-vex/bin/openocd -f /opt/openocd-vex/share/openocd/scripts/interface/altera-usb-blaster2.cfg \
-		-c "adapter speed 1000; transport select jtag" \
-		-f "vexriscv_init.cfg"
-
-gdb:
-	$(TARGET)-gdb progmem.elf \
-		-ex "target remote localhost:3333"
-gdbgui:
-	$(GDBGUI) -g '$(TARGET)-gdb progmem.elf -ex "target remote localhost:3333"'
 
 clean:
 	\rm -fr *.o *.hex *.elf *.dis *.bin *.coe *.map *.mif *.mem *.funcs *.globs

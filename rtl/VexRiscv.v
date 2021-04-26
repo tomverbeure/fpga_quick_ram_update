@@ -42,7 +42,7 @@
 `define Src1CtrlEnum_defaultEncoding_PC_INCREMENT 2'b10
 `define Src1CtrlEnum_defaultEncoding_URS1 2'b11
 
-module VexRiscv(
+module VexRiscvTop(
   output              io_iBus_cmd_valid,
   input               io_iBus_cmd_ready,
   output     [31:0]   io_iBus_cmd_payload_pc,

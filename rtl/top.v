@@ -8,14 +8,6 @@ module top(
         output reg      led0,
         output reg      led1,
         output reg      led2
-
-`ifdef JTAG_ENABLED
-	,
-        input  wire     jtag_tck,
-        input  wire     jtag_tms,
-        input  wire     jtag_tdi,
-        output wire     jtag_tdo
-`endif
     );
 
     wire                iBus_cmd_valid;
@@ -47,7 +39,7 @@ module top(
 
     assign reset = reset_vec[7];
 
-    VexRiscvWithDebug u_vex (
+    VexRiscvTop u_vex (
             .clk                        (clk),
             .reset                      (reset),
 
@@ -72,14 +64,6 @@ module top(
 
             .io_timerInterrupt          (1'b0),
             .io_externalInterrupt       (1'b0)
-
-`ifdef JTAG_ENABLED
-	    ,
-            .io_jtag_tck                (jtag_tck),
-            .io_jtag_tms                (jtag_tms),
-            .io_jtag_tdi                (jtag_tdi),
-            .io_jtag_tdo                (jtag_tdo)
-`endif
         );
 
     // When changing this value, checkout ./sw/Makefile for a list of 
