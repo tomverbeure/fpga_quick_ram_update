@@ -71,6 +71,10 @@ module top(
             .io_externalInterrupt       (1'b0)
         );
 
+    always @(posedge clk) begin
+        iBus_rsp_valid  <= iBus_cmd_valid;
+    end
+
     assign iBus_cmd_ready           = 1'b1;
     assign iBus_rsp_payload_error   = 1'b0;
 
@@ -91,6 +95,8 @@ module top(
     assign mem_wr = {4{dBus_cmd_valid && !dBus_cmd_payload_address[31] && dBus_cmd_payload_wr}} & dBus_be;
 
 `ifndef ALTSYNCRAM
+    // Instead of inferring 1 32-bit wide RAM with 4 byte enables, infer
+    // 4 8-bit wide RAMs. 
 
     reg [7:0] mem0[0:mem_size_bytes/4-1];
     reg [7:0] mem1[0:mem_size_bytes/4-1];
@@ -107,9 +113,6 @@ module top(
     //============================================================
     // CPU memory instruction read port
     //============================================================
-    always @(posedge clk) begin
-        iBus_rsp_valid  <= iBus_cmd_valid;
-    end
 
     always @(posedge clk) begin 
         iBus_rsp_payload_inst[ 7: 0]  <= mem0[iBus_cmd_payload_pc[mem_addr_bits-1:2]];
@@ -173,8 +176,6 @@ module top(
         u_mem0.operation_mode   = "BIDIR_DUAL_PORT",
         u_mem0.widthad_a        = mem_addr_bits-2,
         u_mem0.widthad_b        = mem_addr_bits-2,
-        u_mem0.numwords_a       = mem_size_bytes/4,
-        u_mem0.numwords_b       = mem_size_bytes/4,
         u_mem0.width_a          = 8,
         u_mem0.width_b          = 8,
         u_mem0.outdata_reg_a    = "UNREGISTERED",
@@ -201,8 +202,6 @@ module top(
         u_mem1.operation_mode   = "BIDIR_DUAL_PORT",
         u_mem1.widthad_a        = mem_addr_bits-2,
         u_mem1.widthad_b        = mem_addr_bits-2,
-        u_mem1.numwords_a       = mem_size_bytes/4,
-        u_mem1.numwords_b       = mem_size_bytes/4,
         u_mem1.width_a          = 8,
         u_mem1.width_b          = 8,
         u_mem1.outdata_reg_a    = "UNREGISTERED",
@@ -229,8 +228,6 @@ module top(
         u_mem2.operation_mode   = "BIDIR_DUAL_PORT",
         u_mem2.widthad_a        = mem_addr_bits-2,
         u_mem2.widthad_b        = mem_addr_bits-2,
-        u_mem2.numwords_a       = mem_size_bytes/4,
-        u_mem2.numwords_b       = mem_size_bytes/4,
         u_mem2.width_a          = 8,
         u_mem2.width_b          = 8,
         u_mem2.outdata_reg_a    = "UNREGISTERED",
@@ -257,8 +254,6 @@ module top(
         u_mem3.operation_mode   = "BIDIR_DUAL_PORT",
         u_mem3.widthad_a        = mem_addr_bits-2,
         u_mem3.widthad_b        = mem_addr_bits-2,
-        u_mem3.numwords_a       = mem_size_bytes/4,
-        u_mem3.numwords_b       = mem_size_bytes/4,
         u_mem3.width_a          = 8,
         u_mem3.width_b          = 8,
         u_mem3.outdata_reg_a    = "UNREGISTERED",
