@@ -29,9 +29,12 @@ register to read back the value of a button.
 
     In addition to all the standard files that are needed for 
     a Quartus project, the `./quartus_max10_deca` directory also contains
-    a makefile to compile the design from the command line (`make`) or
-    to only update the RAM contains of an already built bitstream
-    (`make update_ram`)
+    a makefile to compile the design from the command line. 
+
+    Do `make` to compile the whole design from scratch.
+
+    Do `make update_ram` to only update the RAM contains of an already built 
+    bitstream.
 
     This makefile can trivially be adapted for projects that use different
     versions of Quartus, and for different designs.
@@ -39,6 +42,11 @@ register to read back the value of a button.
     The method of updating the RAM has been confirmed to work for Quartus
     13.0sp1 (the last version that supports Cyclone II devices), Quartus
     17, Quartus 18, Quartus 19 and Quartus 20.
+
+* `./misc`
+
+    Contains helps scripts. In this case, the `create_mif.rb` script which converts
+    binary files into MIF file (and other formats as well...)
 
 ## Required software
 

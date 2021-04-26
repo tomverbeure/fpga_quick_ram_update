@@ -1,6 +1,6 @@
 `default_nettype none
 
-`define ALTSYNCRAM
+//`define ALTSYNCRAM
 
 module top(
         input  wire     clk,
@@ -13,7 +13,11 @@ module top(
     // When changing this value, checkout ./sw/Makefile for a list of 
     // all other files that must be changed as well.
     localparam mem_size_bytes   = 2048;
-    localparam mem_addr_bits    = 11;
+
+    // $clog2 is only supported by Verilog-2005 and later.
+    // If your synthesis tool doesn't like it, just replace the expression
+    // below by 11...
+    localparam mem_addr_bits    = $clog2(mem_size_bytes);   
 
     wire                iBus_cmd_valid;
     wire                iBus_cmd_ready;
@@ -96,7 +100,9 @@ module top(
 
 `ifndef ALTSYNCRAM
     // Instead of inferring 1 32-bit wide RAM with 4 byte enables, infer
-    // 4 8-bit wide RAMs. 
+    // 4 8-bit wide RAMs. Many synthesis tools have issues with inferring RAMs with byte enables. 
+    // Quartus, for example, only supports them with SystemVerilog, not
+    // regular Verilog.
 
     reg [7:0] mem0[0:mem_size_bytes/4-1];
     reg [7:0] mem1[0:mem_size_bytes/4-1];
@@ -156,6 +162,11 @@ module top(
             mem_rdata[31:24]  <= mem3[dBus_cmd_payload_address[mem_addr_bits-1:2]];
     end
 `else
+    // altsyncram is the Intel synchronous RAM primitive. This code will only
+    // work on Intel FPGAs.
+    // Most Intel FPGAs have block RAMs that have byte-enable support, so the
+    // 4 8-bit RAMs below could have been replaced by just 1 32-bit RAM...
+
 	altsyncram u_mem0 (
                 .clock0             (clk),
                 .wren_a             (1'b0),
