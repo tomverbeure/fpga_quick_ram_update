@@ -6,6 +6,8 @@
 #include "top_defines.h"
 #include "lib.h"
 
+//#define REVERSE_DIR
+
 void wait_led_cycle(int ms)
 {
     if (REG_RD_FIELD(STATUS, SIMULATION) == 1){
@@ -21,6 +23,16 @@ int main()
 {
     while(1){
         int wait_time = REG_RD_FIELD(STATUS, BUTTON) ? 200 : 100;
+#ifdef REVERSE_DIR
+        REG_WR(LED_CONFIG, 0x04);
+        wait_led_cycle(wait_time);
+
+        REG_WR(LED_CONFIG, 0x02);
+        wait_led_cycle(wait_time);
+
+        REG_WR(LED_CONFIG, 0x01);
+        wait_led_cycle(wait_time);
+#else
         REG_WR(LED_CONFIG, 0x01);
         wait_led_cycle(wait_time);
 
@@ -29,5 +41,6 @@ int main()
 
         REG_WR(LED_CONFIG, 0x04);
         wait_led_cycle(wait_time);
+#endif
     }
 }
