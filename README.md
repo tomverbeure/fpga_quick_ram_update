@@ -5,6 +5,10 @@ This project contains a simple design with a VexRiscv CPU, a bit
 of RAM, a control register to set the value of 3 LEDs and a status
 register to read back the value of a button.
 
+It's an example design that goes with my 
+[A Hack to Update RAM Initialization Contents in Intel FPGA Bitstreams](https://tomverbeure.github.io/2021/04/25/Intel-FPGA-RAM-Bitstream-Patching.html)
+blog post.
+
 ## Contents
 
 * `./rtl`: RTL files 
