@@ -1,6 +1,6 @@
 `default_nettype none
 
-//`define JTAG_ENABLED
+`define ALTSYNCRAM
 
 module top(
         input  wire     clk,
@@ -9,6 +9,11 @@ module top(
         output reg      led1,
         output reg      led2
     );
+
+    // When changing this value, checkout ./sw/Makefile for a list of 
+    // all other files that must be changed as well.
+    localparam mem_size_bytes   = 2048;
+    localparam mem_addr_bits    = 11;
 
     wire                iBus_cmd_valid;
     wire                iBus_cmd_ready;
@@ -66,23 +71,6 @@ module top(
             .io_externalInterrupt       (1'b0)
         );
 
-    // When changing this value, checkout ./sw/Makefile for a list of 
-    // all other files that must be changed as well.
-    localparam mem_size_bytes   = 2048;
-    localparam mem_addr_bits    = 11;
-
-    reg [7:0] mem0[0:mem_size_bytes/4-1];
-    reg [7:0] mem1[0:mem_size_bytes/4-1];
-    reg [7:0] mem2[0:mem_size_bytes/4-1];
-    reg [7:0] mem3[0:mem_size_bytes/4-1];
-
-    initial begin
-        $readmemh("../sw/progmem0.hex", mem0);
-        $readmemh("../sw/progmem1.hex", mem1);
-        $readmemh("../sw/progmem2.hex", mem2);
-        $readmemh("../sw/progmem3.hex", mem3);
-    end
-
     assign iBus_cmd_ready           = 1'b1;
     assign iBus_rsp_payload_error   = 1'b0;
 
@@ -96,6 +84,25 @@ module top(
     assign dBus_be    = (dBus_cmd_payload_size == 2'd0) ? (4'b0001 << dBus_cmd_payload_address[1:0]) : 
                         (dBus_cmd_payload_size == 2'd1) ? (4'b0011 << dBus_cmd_payload_address[1:0]) : 
                                                            4'b1111;
+
+    reg [31:0] mem_rdata;
+
+    wire [3:0] mem_wr;
+    assign mem_wr = {4{dBus_cmd_valid && !dBus_cmd_payload_address[31] && dBus_cmd_payload_wr}} & dBus_be;
+
+`ifndef ALTSYNCRAM
+
+    reg [7:0] mem0[0:mem_size_bytes/4-1];
+    reg [7:0] mem1[0:mem_size_bytes/4-1];
+    reg [7:0] mem2[0:mem_size_bytes/4-1];
+    reg [7:0] mem3[0:mem_size_bytes/4-1];
+
+    initial begin
+        $readmemh("../sw/progmem0.hex", mem0);
+        $readmemh("../sw/progmem1.hex", mem1);
+        $readmemh("../sw/progmem2.hex", mem2);
+        $readmemh("../sw/progmem3.hex", mem3);
+    end
 
     //============================================================
     // CPU memory instruction read port
@@ -114,13 +121,8 @@ module top(
     //============================================================
     // CPU memory data read/write port
     //============================================================
-    reg [31:0] mem_rdata;
 
-    wire [3:0] mem_wr;
-    assign mem_wr = {4{dBus_cmd_valid && !dBus_cmd_payload_address[31] && dBus_cmd_payload_wr}} & dBus_be;
-
-    // Quartus 13.0sp1 (the last version that supports Cyclone II) is
-    // very picky about how RTL should structured to infer a true dual-ported RAM...
+    // Quartus can be very picky about how RTL should structured to infer a true dual-ported RAM...
     always @(posedge clk) begin
         if (mem_wr[0]) begin
             mem0[dBus_cmd_payload_address[mem_addr_bits-1:2]]    <= dBus_wdata[ 7: 0];
@@ -150,6 +152,120 @@ module top(
         else 
             mem_rdata[31:24]  <= mem3[dBus_cmd_payload_address[mem_addr_bits-1:2]];
     end
+`else
+	altsyncram u_mem0 (
+                .clock0             (clk),
+                .wren_a             (1'b0),
+                .rden_a             (1'b1),
+                .address_a          (iBus_cmd_payload_pc[mem_addr_bits-1:2]),
+                .data_a             (8'd0),
+                .q_a                (iBus_rsp_payload_inst[7:0]),
+
+                .clock1             (clk),
+                .address_b          (dBus_cmd_payload_address[mem_addr_bits-1:2]),
+                .wren_b             (mem_wr[0]),
+                .rden_b             (1'b1),
+                .data_b             (dBus_wdata[7:0]),
+                .q_b                (mem_rdata[7:0])
+            );
+
+    defparam
+        u_mem0.operation_mode   = "BIDIR_DUAL_PORT",
+        u_mem0.widthad_a        = mem_addr_bits-2,
+        u_mem0.widthad_b        = mem_addr_bits-2,
+        u_mem0.numwords_a       = mem_size_bytes/4,
+        u_mem0.numwords_b       = mem_size_bytes/4,
+        u_mem0.width_a          = 8,
+        u_mem0.width_b          = 8,
+        u_mem0.outdata_reg_a    = "UNREGISTERED",
+        u_mem0.outdata_reg_b    = "UNREGISTERED",
+        u_mem0.init_file        = "../sw/progmem0.mif";
+
+	altsyncram u_mem1 (
+                .clock0             (clk),
+                .wren_a             (1'b0),
+                .rden_a             (1'b1),
+                .address_a          (iBus_cmd_payload_pc[mem_addr_bits-1:2]),
+                .data_a             (8'd0),
+                .q_a                (iBus_rsp_payload_inst[15:8]),
+
+                .clock1             (clk),
+                .address_b          (dBus_cmd_payload_address[mem_addr_bits-1:2]),
+                .wren_b             (mem_wr[1]),
+                .rden_b             (1'b1),
+                .data_b             (dBus_wdata[15:8]),
+                .q_b                (mem_rdata[15:8])
+            );
+
+    defparam
+        u_mem1.operation_mode   = "BIDIR_DUAL_PORT",
+        u_mem1.widthad_a        = mem_addr_bits-2,
+        u_mem1.widthad_b        = mem_addr_bits-2,
+        u_mem1.numwords_a       = mem_size_bytes/4,
+        u_mem1.numwords_b       = mem_size_bytes/4,
+        u_mem1.width_a          = 8,
+        u_mem1.width_b          = 8,
+        u_mem1.outdata_reg_a    = "UNREGISTERED",
+        u_mem1.outdata_reg_b    = "UNREGISTERED",
+        u_mem1.init_file        = "../sw/progmem1.mif";
+
+	altsyncram u_mem2 (
+                .clock0             (clk),
+                .wren_a             (1'b0),
+                .rden_a             (1'b1),
+                .address_a          (iBus_cmd_payload_pc[mem_addr_bits-1:2]),
+                .data_a             (8'd0),
+                .q_a                (iBus_rsp_payload_inst[23:16]),
+
+                .clock1             (clk),
+                .address_b          (dBus_cmd_payload_address[mem_addr_bits-1:2]),
+                .wren_b             (mem_wr[2]),
+                .rden_b             (1'b1),
+                .data_b             (dBus_wdata[23:16]),
+                .q_b                (mem_rdata[23:16])
+            );
+
+    defparam
+        u_mem2.operation_mode   = "BIDIR_DUAL_PORT",
+        u_mem2.widthad_a        = mem_addr_bits-2,
+        u_mem2.widthad_b        = mem_addr_bits-2,
+        u_mem2.numwords_a       = mem_size_bytes/4,
+        u_mem2.numwords_b       = mem_size_bytes/4,
+        u_mem2.width_a          = 8,
+        u_mem2.width_b          = 8,
+        u_mem2.outdata_reg_a    = "UNREGISTERED",
+        u_mem2.outdata_reg_b    = "UNREGISTERED",
+        u_mem2.init_file        = "../sw/progmem2.mif";
+
+	altsyncram u_mem3 (
+                .clock0             (clk),
+                .wren_a             (1'b0),
+                .rden_a             (1'b1),
+                .address_a          (iBus_cmd_payload_pc[mem_addr_bits-1:2]),
+                .data_a             (8'd0),
+                .q_a                (iBus_rsp_payload_inst[31:24]),
+
+                .clock1             (clk),
+                .address_b          (dBus_cmd_payload_address[mem_addr_bits-1:2]),
+                .wren_b             (mem_wr[3]),
+                .rden_b             (1'b1),
+                .data_b             (dBus_wdata[31:24]),
+                .q_b                (mem_rdata[31:24])
+            );
+
+    defparam
+        u_mem3.operation_mode   = "BIDIR_DUAL_PORT",
+        u_mem3.widthad_a        = mem_addr_bits-2,
+        u_mem3.widthad_b        = mem_addr_bits-2,
+        u_mem3.numwords_a       = mem_size_bytes/4,
+        u_mem3.numwords_b       = mem_size_bytes/4,
+        u_mem3.width_a          = 8,
+        u_mem3.width_b          = 8,
+        u_mem3.outdata_reg_a    = "UNREGISTERED",
+        u_mem3.outdata_reg_b    = "UNREGISTERED",
+        u_mem3.init_file        = "../sw/progmem3.mif";
+
+`endif
 
     //============================================================
     // Peripherals
