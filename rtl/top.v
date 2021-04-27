@@ -167,7 +167,17 @@ module top(
     // Most Intel FPGAs have block RAMs that have byte-enable support, so the
     // 4 8-bit RAMs below could have been replaced by just 1 32-bit RAM...
 
-	altsyncram u_mem0 (
+	altsyncram #(
+        .operation_mode   ("BIDIR_DUAL_PORT"),
+        .widthad_a        (mem_addr_bits-2),
+        .widthad_b        (mem_addr_bits-2),
+        .width_a          (8),
+        .width_b          (8),
+        .outdata_reg_a    ("UNREGISTERED"),
+        .outdata_reg_b    ("UNREGISTERED"),
+        .init_file        ("../sw/progmem0.mif")
+    )
+    u_mem0 (
                 .clock0             (clk),
                 .wren_a             (1'b0),
                 .rden_a             (1'b1),
@@ -183,17 +193,17 @@ module top(
                 .q_b                (mem_rdata[7:0])
             );
 
-    defparam
-        u_mem0.operation_mode   = "BIDIR_DUAL_PORT",
-        u_mem0.widthad_a        = mem_addr_bits-2,
-        u_mem0.widthad_b        = mem_addr_bits-2,
-        u_mem0.width_a          = 8,
-        u_mem0.width_b          = 8,
-        u_mem0.outdata_reg_a    = "UNREGISTERED",
-        u_mem0.outdata_reg_b    = "UNREGISTERED",
-        u_mem0.init_file        = "../sw/progmem0.mif";
-
-	altsyncram u_mem1 (
+	altsyncram #(
+        .operation_mode   ("BIDIR_DUAL_PORT"),
+        .widthad_a        (mem_addr_bits-2),
+        .widthad_b        (mem_addr_bits-2),
+        .width_a          (8),
+        .width_b          (8),
+        .outdata_reg_a    ("UNREGISTERED"),
+        .outdata_reg_b    ("UNREGISTERED"),
+        .init_file        ("../sw/progmem1.mif")
+    )
+    u_mem1 (
                 .clock0             (clk),
                 .wren_a             (1'b0),
                 .rden_a             (1'b1),
@@ -209,17 +219,17 @@ module top(
                 .q_b                (mem_rdata[15:8])
             );
 
-    defparam
-        u_mem1.operation_mode   = "BIDIR_DUAL_PORT",
-        u_mem1.widthad_a        = mem_addr_bits-2,
-        u_mem1.widthad_b        = mem_addr_bits-2,
-        u_mem1.width_a          = 8,
-        u_mem1.width_b          = 8,
-        u_mem1.outdata_reg_a    = "UNREGISTERED",
-        u_mem1.outdata_reg_b    = "UNREGISTERED",
-        u_mem1.init_file        = "../sw/progmem1.mif";
-
-	altsyncram u_mem2 (
+	altsyncram #(
+        .operation_mode   ("BIDIR_DUAL_PORT"),
+        .widthad_a        (mem_addr_bits-2),
+        .widthad_b        (mem_addr_bits-2),
+        .width_a          (8),
+        .width_b          (8),
+        .outdata_reg_a    ("UNREGISTERED"),
+        .outdata_reg_b    ("UNREGISTERED"),
+        .init_file        ("../sw/progmem2.mif")
+    )
+    u_mem2 (
                 .clock0             (clk),
                 .wren_a             (1'b0),
                 .rden_a             (1'b1),
@@ -235,17 +245,17 @@ module top(
                 .q_b                (mem_rdata[23:16])
             );
 
-    defparam
-        u_mem2.operation_mode   = "BIDIR_DUAL_PORT",
-        u_mem2.widthad_a        = mem_addr_bits-2,
-        u_mem2.widthad_b        = mem_addr_bits-2,
-        u_mem2.width_a          = 8,
-        u_mem2.width_b          = 8,
-        u_mem2.outdata_reg_a    = "UNREGISTERED",
-        u_mem2.outdata_reg_b    = "UNREGISTERED",
-        u_mem2.init_file        = "../sw/progmem2.mif";
-
-	altsyncram u_mem3 (
+	altsyncram #(
+        .operation_mode   ("BIDIR_DUAL_PORT"),
+        .widthad_a        (mem_addr_bits-2),
+        .widthad_b        (mem_addr_bits-2),
+        .width_a          (8),
+        .width_b          (8),
+        .outdata_reg_a    ("UNREGISTERED"),
+        .outdata_reg_b    ("UNREGISTERED"),
+        .init_file        ("../sw/progmem3.mif")
+    )
+    u_mem3 (
                 .clock0             (clk),
                 .wren_a             (1'b0),
                 .rden_a             (1'b1),
@@ -260,17 +270,6 @@ module top(
                 .data_b             (dBus_wdata[31:24]),
                 .q_b                (mem_rdata[31:24])
             );
-
-    defparam
-        u_mem3.operation_mode   = "BIDIR_DUAL_PORT",
-        u_mem3.widthad_a        = mem_addr_bits-2,
-        u_mem3.widthad_b        = mem_addr_bits-2,
-        u_mem3.width_a          = 8,
-        u_mem3.width_b          = 8,
-        u_mem3.outdata_reg_a    = "UNREGISTERED",
-        u_mem3.outdata_reg_b    = "UNREGISTERED",
-        u_mem3.init_file        = "../sw/progmem3.mif";
-
 `endif
 
     //============================================================
