@@ -21,11 +21,10 @@ module tb;
 
     wire led0, led1, led2, button;
 
+    assign button = 1'b1;
+
     top u_top(
         .clk(clk),
-        .jtag_tck(1'b0),
-        .jtag_tms(1'b0),
-        .jtag_tdi(1'b0),
         .led0(led0),
         .led1(led1),
         .led2(led2),

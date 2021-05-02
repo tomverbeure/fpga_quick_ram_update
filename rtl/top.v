@@ -342,7 +342,7 @@ module top(
             // Both memory reads and peripheral reads don't support wait
             // cycles. Data is always returned immediately the next cycle.
             dBus_rsp_ready  <= dBus_cmd_valid && !dBus_cmd_payload_wr;
-            periph_sel      <= dBus_cmd_payload_address[31];
+            periph_sel      <= dBus_cmd_valid && !dBus_cmd_payload_wr && dBus_cmd_payload_address[31];
         end
     end
 
